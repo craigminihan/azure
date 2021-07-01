@@ -207,6 +207,9 @@ options:
             enable_floating_ip:
                 description:
                     - Configures a virtual machine's endpoint for the floating IP capability required to configure a SQL AlwaysOn Availability Group.
+            disable_outbound_snat:
+                description:
+                    - Gets or sets configures SNAT for the VMs in the backend pool to use the publicIP address specified in the frontend of the load balancing rule.
     inbound_nat_rules:
         description:
             - Collection of inbound NAT Rules used by a load balancer.
@@ -558,6 +561,9 @@ load_balancing_rule_spec = dict(
     ),
     enable_floating_ip=dict(
         type='bool'
+    ),
+    disable_outbound_snat=dict(
+        type='bool'
     )
 )
 
@@ -765,7 +771,8 @@ class AzureRMLoadBalancer(AzureRMModuleBase):
                     frontend_port=self.frontend_port,
                     backend_port=self.backend_port,
                     idle_timeout=self.idle_timeout,
-                    enable_floating_ip=False
+                    enable_floating_ip=False,
+                    disable_outbound_snat=False
                 )] if self.protocol else None
 
             # create new load balancer structure early, so it can be easily compared
@@ -835,7 +842,8 @@ class AzureRMLoadBalancer(AzureRMModuleBase):
                 frontend_port=item.get('frontend_port'),
                 backend_port=item.get('backend_port'),
                 idle_timeout_in_minutes=item.get('idle_timeout'),
-                enable_floating_ip=item.get('enable_floating_ip')
+                enable_floating_ip=item.get('enable_floating_ip'),
+                disable_outbound_snat=item.get('disable_outbound_snat')
             ) for item in self.load_balancing_rules] if self.load_balancing_rules else None
 
             inbound_nat_rules_param = [self.network_models.InboundNatRule(
